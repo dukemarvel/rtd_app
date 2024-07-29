@@ -1,5 +1,6 @@
 import React from 'react';
 import { Todo } from '../../types/todo';
+import '../styles/TodoItem.css'; 
 
 interface TodoItemProps {
   todo: Todo;
@@ -9,15 +10,18 @@ interface TodoItemProps {
 
 const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete }) => {
   return (
-    <div>
+    <div className={`todo-item ${todo.completed ? 'completed' : ''}`}>
       <input
         type="checkbox"
         checked={todo.completed}
         onChange={() => onToggle(todo.id)}
       />
-      <span>{todo.text}</span>
-      <span> (Created by: {todo.creator})</span>
-      {todo.completed && todo.doneBy && <span> (Done by: {todo.doneBy})</span>}
+      <span className="task-text">
+        {todo.text} <span className="meta-text">(Created by: {todo.creator})</span>
+        {todo.completed && todo.doneBy && (
+          <span className="meta-text"> - Completed by: {todo.doneBy}</span>
+        )}
+      </span>
       <button onClick={() => onDelete(todo.id)}>Delete</button>
     </div>
   );

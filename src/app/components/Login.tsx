@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import '../styles/Login.css';
 
 interface LoginProps {
   onLogin: (username: string) => void;
@@ -15,7 +16,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   };
 
   return (
-    <div>
+    <div className="login">
       <h1>Enter Your Username</h1>
       <input
         type="text"

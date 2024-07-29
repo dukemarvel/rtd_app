@@ -5,12 +5,12 @@ import Pusher from 'pusher-js';
 import TodoItem from './TodoItem';
 import { Todo } from '../../types/todo';
 import Login from './Login';
+import '../styles/TodoList.css';
 
 const TodoList = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodoText, setNewTodoText] = useState('');
   const [username, setUsername] = useState<string | null>(null);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     if (username) {
@@ -74,20 +74,23 @@ const TodoList = () => {
     await axios.delete(`/api/todos/${id}`);
   };
 
-  const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
-  };
-
   if (!username) {
     return <Login onLogin={setUsername} />;
   }
 
+  const completedTasks = todos.filter((todo) => todo.completed).length;
+
+  
+  const sortedTodos = [...todos].sort((a, b) => {
+    if (a.completed === b.completed) return 0;
+    return a.completed ? 1 : -1;
+  });
+
   return (
-    <div className={theme}>
-      <h1>Real-Time Collaborative To-Do App</h1>
-      <button onClick={toggleTheme}>
-        {theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
-      </button>
+    <div className="container">
+      <header>
+        <h1>To-Do</h1>
+      </header>
       <input
         type="text"
         placeholder="Add a new task"
@@ -96,7 +99,7 @@ const TodoList = () => {
       />
       <button onClick={handleAddTodo}>Add Task</button>
       <div>
-        {todos.map((todo) => (
+        {sortedTodos.map((todo) => (
           <TodoItem
             key={todo.id}
             todo={todo}
@@ -105,19 +108,9 @@ const TodoList = () => {
           />
         ))}
       </div>
-      <div>
-        {todos.filter((todo) => todo.completed).length}/{todos.length} tasks completed
-      </div>
-      <style jsx>{`
-        .light {
-          background-color: white;
-          color: black;
-        }
-        .dark {
-          background-color: black;
-          color: white;
-        }
-      `}</style>
+      <footer>
+        {completedTasks}/{todos.length} tasks completed
+      </footer>
     </div>
   );
 };
