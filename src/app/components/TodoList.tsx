@@ -10,6 +10,7 @@ const TodoList = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [newTodoText, setNewTodoText] = useState('');
   const [username, setUsername] = useState<string | null>(null);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     if (username) {
@@ -73,15 +74,20 @@ const TodoList = () => {
     await axios.delete(`/api/todos/${id}`);
   };
 
-  const completedCount = todos.filter(todo => todo.completed).length;
+  const toggleTheme = () => {
+    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
+  };
 
   if (!username) {
     return <Login onLogin={setUsername} />;
   }
 
   return (
-    <div>
-      <h1>Real-Time To-Do List</h1>
+    <div className={theme}>
+      <h1>Real-Time Collaborative To-Do App</h1>
+      <button onClick={toggleTheme}>
+        {theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+      </button>
       <input
         type="text"
         placeholder="Add a new task"
@@ -100,8 +106,18 @@ const TodoList = () => {
         ))}
       </div>
       <div>
-        <p>{completedCount}/{todos.length} tasks completed</p>
+        {todos.filter((todo) => todo.completed).length}/{todos.length} tasks completed
       </div>
+      <style jsx>{`
+        .light {
+          background-color: white;
+          color: black;
+        }
+        .dark {
+          background-color: black;
+          color: white;
+        }
+      `}</style>
     </div>
   );
 };
