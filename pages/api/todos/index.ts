@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { v4 as uuidv4 } from 'uuid';
 import Pusher from 'pusher';
-import { getTodos, addTodo } from '../../../src/data/todos';
-import { Todo } from '../../../src/types/todo';
+import { db } from '@/db/drizzle';
+import { todo } from '@/db/schema';
+import { v4 as uuidv4 } from 'uuid';
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID!,
@@ -12,24 +12,44 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
-export default (req: NextApiRequest, res: NextApiResponse) => {
+export default async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === 'GET') {
-    const todos = getTodos();
-    res.status(200).json(todos);
+    try {
+      const todos = await db.select().from(todo);
+      res.status(200).json(todos);
+    } catch (error) {
+      console.error('Error fetching todos:', error);
+      res.status(500).json({ error: 'Error fetching todos' });
+    }
   } else if (req.method === 'POST') {
-    const newTodo: Todo = {
-      id: uuidv4(),
-      text: req.body.text,
-      completed: false,
-      creator: req.body.creator,
-      doneBy: null,
-    };
-    addTodo(newTodo);
+    try {
+      const { text, creator } = req.body;
 
-    pusher.trigger('todo-channel', 'new-todo', newTodo);
+      
+      if (!text || !creator) {
+        return res.status(400).json({ error: 'Invalid request data' });
+      }
 
-    res.status(201).json(newTodo);
+      const newTodo = {
+        id: uuidv4(),
+        text,
+        completed: false,
+        creator,
+        doneBy: null,
+        dateCreated: new Date().toISOString(),
+        dateCompleted: null,
+      };
+
+      await db.insert(todo).values(newTodo);
+
+      pusher.trigger('todo-channel', 'new-todo', newTodo);
+
+      res.status(201).json(newTodo);
+    } catch (error) {
+      console.error('Error inserting new todo:', error);
+      res.status(500).json({ error: 'Error inserting new todo' });
+    }
   } else {
-    res.status(405).end();
+    res.status(405).json({ error: 'Method Not Allowed' });
   }
 };

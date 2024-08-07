@@ -15,8 +15,12 @@ const TodoList = () => {
   useEffect(() => {
     if (username) {
       const fetchTodos = async () => {
-        const response = await axios.get('/api/todos');
-        setTodos(response.data);
+        try {
+          const response = await axios.get('/api/todos');
+          setTodos(response.data);
+        } catch (error) {
+          console.error('Error fetching todos:', error);
+        }
       };
 
       fetchTodos();
@@ -52,26 +56,42 @@ const TodoList = () => {
 
   const handleAddTodo = async () => {
     if (newTodoText && username) {
-      await axios.post('/api/todos', {
+      const newTodo = {
         text: newTodoText,
         creator: username,
-      });
-      setNewTodoText('');
+        dateCreated: new Date().toISOString(), // Ensure the date is in ISO format
+      };
+      try {
+        await axios.post('/api/todos', newTodo);
+        setNewTodoText('');
+      } catch (error) {
+        console.error('Error adding todo:', error);
+      }
     }
   };
 
   const handleToggle = async (id: string) => {
     const todo = todos.find((todo) => todo.id === id);
     if (todo && username) {
-      await axios.put(`/api/todos/${id}`, {
+      const updates = {
         completed: !todo.completed,
         doneBy: !todo.completed ? username : null,
-      });
+        dateCompleted: !todo.completed ? new Date().toISOString() : null, // Ensure the date is in ISO format
+      };
+      try {
+        await axios.put(`/api/todos/${id}`, updates);
+      } catch (error) {
+        console.error('Error toggling todo:', error);
+      }
     }
   };
 
   const handleDelete = async (id: string) => {
-    await axios.delete(`/api/todos/${id}`);
+    try {
+      await axios.delete(`/api/todos/${id}`);
+    } catch (error) {
+      console.error('Error deleting todo:', error);
+    }
   };
 
   if (!username) {
@@ -80,7 +100,6 @@ const TodoList = () => {
 
   const completedTasks = todos.filter((todo) => todo.completed).length;
 
-  
   const sortedTodos = [...todos].sort((a, b) => {
     if (a.completed === b.completed) return 0;
     return a.completed ? 1 : -1;

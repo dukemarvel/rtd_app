@@ -1,7 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import Pusher from 'pusher';
-import { getTodos, updateTodo, deleteTodo } from '../../../src/data/todos';
-import { Todo } from '../../../src/types/todo';
+import { db } from '@/db/drizzle';
+import { todo } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID!,
@@ -11,36 +12,55 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
-export default (req: NextApiRequest, res: NextApiResponse) => {
-  const { id } = req.query;
+export default async (req: NextApiRequest, res: NextApiResponse) => {
+  const { id } = req.query as { id: string };
 
-  if (req.method === 'PUT') {
-    const todos = getTodos();
-    const todoIndex = todos.findIndex(todo => todo.id === id);
-    if (todoIndex !== -1) {
-      const updatedFields = req.body;
-      if (updatedFields.completed === true) {
-        updatedFields.doneBy = req.body.doneBy; 
+  if (!id) {
+    return res.status(400).json({ error: 'ID is required' });
+  }
+
+  if (req.method === 'GET') {
+    try {
+      const todos = await db.select().from(todo).where(eq(todo.id, id));
+      const todoItem = todos[0];
+
+      if (!todoItem) {
+        return res.status(404).json({ error: 'Todo not found' });
       }
-      const updatedTodo = { ...todos[todoIndex], ...updatedFields };
-      updateTodo(id as string, updatedFields);
-      pusher.trigger('todo-channel', 'updated-todo', updatedTodo);
-      res.status(200).json(updatedTodo);
-    } else {
-      res.status(404).json({ error: 'Todo not found' });
+
+      res.status(200).json(todoItem);
+    } catch (error) {
+      console.error('Error fetching todo:', error);
+      res.status(500).json({ error: 'Error fetching todo' });
+    }
+  } else if (req.method === 'PUT') {
+    try {
+      const updates = req.body;
+
+      await db.update(todo).set(updates).where(eq(todo.id, id));
+
+      const updatedTodo = await db.select().from(todo).where(eq(todo.id, id));
+      const updatedTodoItem = updatedTodo[0];
+
+      pusher.trigger('todo-channel', 'updated-todo', updatedTodoItem);
+
+      res.status(200).json(updatedTodoItem);
+    } catch (error) {
+      console.error('Error updating todo:', error);
+      res.status(500).json({ error: 'Error updating todo' });
     }
   } else if (req.method === 'DELETE') {
-    const todos = getTodos();
-    const todoIndex = todos.findIndex(todo => todo.id === id);
-    if (todoIndex !== -1) {
-      deleteTodo(id as string);
-      const deletedTodo = todos[todoIndex];
-      pusher.trigger('todo-channel', 'deleted-todo', deletedTodo);
+    try {
+      await db.delete(todo).where(eq(todo.id, id));
+
+      pusher.trigger('todo-channel', 'deleted-todo', { id });
+
       res.status(204).end();
-    } else {
-      res.status(404).json({ error: 'Todo not found' });
+    } catch (error) {
+      console.error('Error deleting todo:', error);
+      res.status(500).json({ error: 'Error deleting todo' });
     }
   } else {
-    res.status(405).json({ error: 'Method not allowed' });
+    res.status(405).json({ error: 'Method Not Allowed' });
   }
 };

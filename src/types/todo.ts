@@ -4,4 +4,6 @@ export interface Todo {
   completed: boolean;
   creator: string;
   doneBy?: string | null;
+  dateCreated: string;
+  dateCompleted?: string | null;
 }
