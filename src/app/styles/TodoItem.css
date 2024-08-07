@@ -17,6 +17,8 @@
   
   .todo-item input[type="checkbox"] {
     margin-right: 10px;
+
+
   }
   
   .todo-item .task-text {
@@ -43,3 +45,27 @@
     background-color: #c0392b;
   }
   
+  @media (max-width: 600px){
+    .todo-item{
+      padding: 7px;
+      border-radius: 5px;
+      margin: 6px 0;
+    }
+
+    .todo-item .task-text {
+      flex-grow: 1;
+      font-size: 0.5em;
+      margin-right: 7px;
+    }
+
+    .todo-item .meta-text {
+      font-size: 0.45em;
+    }
+
+    .todo-item button {
+      
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+    
+  }
