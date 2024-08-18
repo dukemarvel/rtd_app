@@ -6,6 +6,6 @@ export const todo = pgTable("todo", {
   completed: boolean("completed").default(false).notNull(),
   creator: text("creator").notNull(),
   doneBy: text("doneBy"),
-  dateCreated: date("dateCreated").notNull(),
-  dateCompleted: date("dateCompleted"),
+  dateCreated: date("dateCreated", { mode: "date" }).notNull(),
+  dateCompleted: date("dateCompleted", { mode: "date" }),
 });

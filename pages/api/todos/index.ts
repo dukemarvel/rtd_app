@@ -12,11 +12,38 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
+const isValidDate = (date: any): boolean => {
+  return date instanceof Date && !isNaN(date.getTime());
+};
+
+const logTodos = async () => {
+  const todos = await db.select().from(todo);
+  console.log('Raw todos from the database:', todos);
+};
+
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === 'GET') {
     try {
+      await logTodos(); // Log raw todos
+
       const todos = await db.select().from(todo);
-      res.status(200).json(todos);
+
+      // Log raw data before formatting
+      console.log('Raw todos before formatting:', todos);
+
+      // Validate and format date fields
+      const formattedTodos = todos.map(todo => {
+        return {
+          ...todo,
+          dateCreated: isValidDate(new Date(todo.dateCreated)) ? new Date(todo.dateCreated).toISOString() : null,
+          dateCompleted: todo.dateCompleted ? (isValidDate(new Date(todo.dateCompleted)) ? new Date(todo.dateCompleted).toISOString() : null) : null,
+        };
+      });
+
+      // Log formatted todos
+      console.log('Formatted todos:', formattedTodos);
+
+      res.status(200).json(formattedTodos);
     } catch (error) {
       console.error('Error fetching todos:', error);
       res.status(500).json({ error: 'Error fetching todos' });
@@ -25,7 +52,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     try {
       const { text, creator } = req.body;
 
-      
       if (!text || !creator) {
         return res.status(400).json({ error: 'Invalid request data' });
       }
@@ -36,11 +62,17 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         completed: false,
         creator,
         doneBy: null,
-        dateCreated: new Date().toISOString(),
+        dateCreated: new Date(), // Ensure this is a Date object
         dateCompleted: null,
       };
 
-      await db.insert(todo).values(newTodo);
+      // Log the new todo before inserting
+      console.log('New todo before insertion:', newTodo);
+
+      // Insert into the database with proper date handling
+      await db.insert(todo).values({
+        ...newTodo,
+      });
 
       pusher.trigger('todo-channel', 'new-todo', newTodo);
 

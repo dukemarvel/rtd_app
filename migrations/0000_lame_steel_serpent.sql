@@ -1,9 +1,9 @@
-CREATE TABLE IF NOT EXISTS "todo" (
-	"id" integer PRIMARY KEY NOT NULL,
-	"text" text NOT NULL,
-	"completed" boolean DEFAULT false NOT NULL,
-	"creator" text NOT NULL,
-	"doneBy" text,
-	"dateCreated" text NOT NULL,
-	"dateCompleted" text
+CREATE TABLE todos (
+  id UUID PRIMARY KEY,
+  text TEXT NOT NULL,
+  completed BOOLEAN NOT NULL,
+  creator TEXT NOT NULL,
+  doneBy TEXT,
+  dateCreated TIMESTAMP WITH TIME ZONE NOT NULL,
+  dateCompleted TIMESTAMP WITH TIME ZONE
 );

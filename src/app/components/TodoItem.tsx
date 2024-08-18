@@ -14,6 +14,7 @@ const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete }) => {
     const date = new Date(dateString);
     return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
   };
+  
 
   return (
     <div className={`todo-item ${todo.completed ? 'completed' : ''}`}>

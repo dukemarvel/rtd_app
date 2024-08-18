@@ -37,6 +37,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     try {
       const updates = req.body;
 
+      // Convert dateCompleted to Date object if it exists
+      if (updates.dateCompleted) {
+        updates.dateCompleted = new Date(updates.dateCompleted);
+      }
+
       await db.update(todo).set(updates).where(eq(todo.id, id));
 
       const updatedTodo = await db.select().from(todo).where(eq(todo.id, id));
