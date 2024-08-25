@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import pusher from '../lib/pusher';
+import pusher from '../lib/pusherClient';
 
 const usePusherChannel = (channelName: string, eventName: string) => {
   const [data, setData] = useState<any>(null);

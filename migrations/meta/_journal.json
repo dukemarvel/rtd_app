@@ -15,6 +15,13 @@
       "when": 1723023236255,
       "tag": "0001_update-todo-id-to-uid",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1724558144410,
+      "tag": "0002_broad_siren",
+      "breakpoints": true
     }
   ]
 }

@@ -1,16 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import Pusher from 'pusher';
 import { db } from '@/db/drizzle';
 import { todo } from '@/db/schema';
+import {pusher} from './pusherServer';
 import { v4 as uuidv4 } from 'uuid';
 
-const pusher = new Pusher({
-  appId: process.env.PUSHER_APP_ID!,
-  key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
-  secret: process.env.PUSHER_SECRET!,
-  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-  useTLS: true,
-});
+
 
 const isValidDate = (date: any): boolean => {
   return date instanceof Date && !isNaN(date.getTime());
@@ -24,14 +18,10 @@ const logTodos = async () => {
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method === 'GET') {
     try {
-      await logTodos(); // Log raw todos
 
       const todos = await db.select().from(todo);
 
-      // Log raw data before formatting
-      console.log('Raw todos before formatting:', todos);
-
-      // Validate and format date fields
+      
       const formattedTodos = todos.map(todo => {
         return {
           ...todo,
@@ -40,9 +30,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         };
       });
 
-      // Log formatted todos
-      console.log('Formatted todos:', formattedTodos);
-
+    
       res.status(200).json(formattedTodos);
     } catch (error) {
       console.error('Error fetching todos:', error);
@@ -62,14 +50,12 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         completed: false,
         creator,
         doneBy: null,
-        dateCreated: new Date(), // Ensure this is a Date object
+        dateCreated: new Date(), 
         dateCompleted: null,
       };
 
-      // Log the new todo before inserting
-      console.log('New todo before insertion:', newTodo);
+    
 
-      // Insert into the database with proper date handling
       await db.insert(todo).values({
         ...newTodo,
       });
